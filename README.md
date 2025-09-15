@@ -88,7 +88,7 @@ which node  # Should show: /home/username/.local/bin/node
 which npm   # Should show: /home/username/.local/bin/npm
 
 # Test the installation
-test-node-sandbox
+test-node-sandbox-system
 ```
 
 ## 🔍 How It Works
@@ -129,16 +129,27 @@ graph TD
 
 ## 🧪 Testing Security
 
-### Quick Test
+### Comprehensive Security Test
 ```bash
-# Basic functionality and security test
-test-node-sandbox
+# Run the comprehensive security test (from project directory)
+test-node-sandbox-system
 ```
 
-### Comprehensive Security Audit
+This will run a detailed security assessment that:
+- ✅ Tests write permissions in sandbox home
+- 🔒 Checks protection of sensitive files (SSH keys, config files)
+- 📁 Lists accessible directories (home, desktop, documents, downloads)
+- 🖥️ Tests system directory access protection
+- 🌐 Verifies network connectivity for npm registry
+- 📊 Shows detailed file listings with types and sizes
+
+### Direct Test Script Execution
 ```bash
-# Full security assessment (if available)
-test-node-sandbox-full
+# Run the test script directly with sandboxed node
+node test-sandbox.js
+
+# Or run with system node for comparison
+/usr/bin/node test-sandbox.js
 ```
 
 ### Manual Verification
@@ -228,6 +239,9 @@ npm install -g nodemon
 ### Security Testing
 
 ```bash
+# Run comprehensive security test
+test-node-sandbox-system
+
 # Try to access sensitive files (should fail)
 node -e "console.log(require('fs').readdirSync('/home/user/.ssh'))"
 
@@ -270,7 +284,8 @@ mkdir -p ~/.sandbox/my-project
 uninstall-node-sandbox
 
 # Or manually remove
-rm -f ~/.local/bin/node ~/.local/bin/npm ~/.local/bin/test-node-sandbox
+rm -f ~/.local/bin/node ~/.local/bin/npm ~/.local/bin/test-node-sandbox-system
+rm -f ./test-sandbox.js  # Remove test script from current directory
 rm -rf ~/.sandbox/node
 
 # Remove PATH entries from shell configs (manual)
@@ -309,7 +324,7 @@ A properly configured sandbox should achieve:
 | **Network Functionality** | 100% |
 | **Development Workflow** | 100% |
 
-Run `test-node-sandbox-full` to get detailed security metrics.
+Run `test-node-sandbox-system` to get detailed security metrics and comprehensive file access analysis.
 
 ## 🤝 Contributing
 
