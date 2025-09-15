@@ -88,7 +88,7 @@ which node  # Should show: /home/username/.local/bin/node
 which npm   # Should show: /home/username/.local/bin/npm
 
 # Test the installation
-test-node-sandbox-system
+node test-sandbox.js
 ```
 
 ## 🔍 How It Works
@@ -132,7 +132,7 @@ graph TD
 ### Comprehensive Security Test
 ```bash
 # Run the comprehensive security test (from project directory)
-test-node-sandbox-system
+node test-sandbox.js
 ```
 
 This will run a detailed security assessment that:
@@ -240,7 +240,7 @@ npm install -g nodemon
 
 ```bash
 # Run comprehensive security test
-test-node-sandbox-system
+node test-sandbox.js
 
 # Try to access sensitive files (should fail)
 node -e "console.log(require('fs').readdirSync('/home/user/.ssh'))"
@@ -284,8 +284,7 @@ mkdir -p ~/.sandbox/my-project
 uninstall-node-sandbox
 
 # Or manually remove
-rm -f ~/.local/bin/node ~/.local/bin/npm ~/.local/bin/test-node-sandbox-system
-rm -f ./test-sandbox.js  # Remove test script from current directory
+rm -f ~/.local/bin/node ~/.local/bin/npm
 rm -rf ~/.sandbox/node
 
 # Remove PATH entries from shell configs (manual)
@@ -324,7 +323,7 @@ A properly configured sandbox should achieve:
 | **Network Functionality** | 100% |
 | **Development Workflow** | 100% |
 
-Run `test-node-sandbox-system` to get detailed security metrics and comprehensive file access analysis.
+Run `node test-sandbox.js` to get detailed security metrics and comprehensive file access analysis.
 
 ## 🤝 Contributing
 
