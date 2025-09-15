@@ -328,58 +328,6 @@ setup_path() {
     fi
 }
 
-# Create test scripts that work with the sandbox
-create_test_scripts() {
-    print_step "Creating security test scripts..."
-    
-    # Create test script in current directory (accessible to sandboxed node)
-    cat > "./test-sandbox.js" << 'EOF'
-#!/usr/bin/env node
-
-console.log('🔍 Node.js Sandbox Quick Test');
-console.log('============================');
-console.log('Node version:', process.version);
-console.log('Home directory:', require('os').homedir());
-console.log('Current directory:', process.cwd());
-
-// Test write to sandbox home
-const fs = require('fs');
-const path = require('path');
-const testFile = path.join(require('os').homedir(), 'test-write.txt');
-
-try {
-    fs.writeFileSync(testFile, 'Sandbox test successful!');
-    const content = fs.readFileSync(testFile, 'utf8');
-    console.log('✅ Write test:', content);
-    fs.unlinkSync(testFile);
-} catch (error) {
-    console.log('❌ Write test failed:', error.message);
-}
-
-// Test sensitive file access
-try {
-    const sensitiveFile = '/home/' + (process.env.USER || 'user') + '/.ssh/id_rsa';
-    fs.readFileSync(sensitiveFile);
-    console.log('❌ Security issue: Can read SSH keys!');
-} catch (error) {
-    console.log('✅ Security test: SSH keys protected');
-}
-
-// Test real home directory access
-try {
-    const realHome = '/home/' + (process.env.USER || 'user');
-    const contents = fs.readdirSync(realHome);
-    console.log('⚠️  Can access real home directory:', contents.slice(0, 3).join(', '));
-} catch (error) {
-    console.log('✅ Real home directory blocked');
-}
-
-console.log('\n🎯 Quick test complete!');
-EOF
-    
-    chmod +x "./test-sandbox.js"
-    print_success "Created test script: test-sandbox.js (in current directory)"
-}
 
 # Test installation
 test_installation() {
@@ -460,11 +408,7 @@ rm -f "$HOME/.local/bin/node"
 rm -f "$HOME/.local/bin/npm"
 rm -f "$HOME/.local/bin/uninstall-node-sandbox"
 
-# Remove test script from current directory if it exists
-if [ -f "./test-sandbox.js" ]; then
-    rm -f "./test-sandbox.js"
-    echo "✅ Removed test script from current directory"
-fi
+# Note: test-sandbox.js is part of the project and should not be removed
 
 # Optionally remove sandbox directory
 printf "Remove sandbox directory $HOME/.sandbox/node? (y/N): "
@@ -506,7 +450,6 @@ main() {
     create_node_wrapper
     create_npm_wrapper
     setup_path
-    create_test_scripts
     create_uninstaller
     
     print_header "Testing Installation"
