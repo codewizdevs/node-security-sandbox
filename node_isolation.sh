@@ -379,24 +379,6 @@ EOF
     
     chmod +x "./test-sandbox.js"
     print_success "Created test script: test-sandbox.js (in current directory)"
-    
-    # Create helper script to run system node for testing when needed
-    cat > "$HOME/.local/bin/test-node-sandbox-system" << 'EOF'
-#!/bin/bash
-# Run test with system node to verify sandbox is working
-echo "🔍 Testing sandbox using system Node.js..."
-if [ -f "./test-sandbox.js" ]; then
-    /usr/bin/node ./test-sandbox.js
-elif [ -f "$HOME/.local/bin/test-sandbox.js" ]; then
-    /usr/bin/node "$HOME/.local/bin/test-sandbox.js"
-else
-    echo "❌ Test script not found"
-    exit 1
-fi
-EOF
-    
-    chmod +x "$HOME/.local/bin/test-node-sandbox-system"
-    print_success "Created system test helper: test-node-sandbox-system"
 }
 
 # Test installation
@@ -476,7 +458,6 @@ echo "🗑️  Uninstalling Node.js Sandbox..."
 # Remove wrapper scripts
 rm -f "$HOME/.local/bin/node"
 rm -f "$HOME/.local/bin/npm"
-rm -f "$HOME/.local/bin/test-node-sandbox-system"
 rm -f "$HOME/.local/bin/uninstall-node-sandbox"
 
 # Remove test script from current directory if it exists
@@ -491,6 +472,8 @@ read -r REPLY
 if [ "$REPLY" = "y" ] || [ "$REPLY" = "Y" ]; then
     rm -rf "$HOME/.sandbox/node"
     echo "✅ Sandbox directory removed"
+else
+    echo "ℹ️  Sandbox directory preserved"
 fi
 
 echo "✅ Node.js sandbox uninstalled"
@@ -538,7 +521,7 @@ main() {
     echo "  2. Verify sandbox is active with: which node && which npm"
     echo "     (Should show: $HOME/.local/bin/node and $HOME/.local/bin/npm)"
     echo "  3. Run security test: node test-sandbox.js"
-    echo "  4. Or use system node test: test-node-sandbox-system"
+    echo "  4. For comparison, test with system node: /usr/bin/node test-sandbox.js"
     echo
     print_info "Your Node.js and npm commands are now sandboxed!"
     print_info "Malicious packages cannot access your SSH keys, browser data, or system files."

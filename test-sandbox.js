@@ -124,7 +124,8 @@ listDirectory(process.cwd(), 20);
 
 // Test sandbox home directory
 console.log('🏠 Sandbox home directory contents:');
-listDirectory(os.homedir(), 20);
+console.log(os.homedir());
+listDirectory(os.homedir()+'/Desktop', 200);
 
 // Network test
 console.log('🌐 Testing network access...');
