@@ -1,6 +1,11 @@
-# Node.js Security Sandbox 🛡️
+# 🛡️ Node.js Security Sandbox
 
-A robust security sandbox for Node.js and npm using bubblewrap to protect your system from malicious packages while maintaining full development capabilities.
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Ubuntu](https://img.shields.io/badge/Ubuntu-24.04%20LTS-orange?logo=ubuntu)](https://ubuntu.com/)
+[![Node.js](https://img.shields.io/badge/Node.js-18%2B-green?logo=node.js)](https://nodejs.org/)
+[![Bubblewrap](https://img.shields.io/badge/Bubblewrap-Container%20Sandbox-blue)](https://github.com/containers/bubblewrap)
+
+> **A robust security sandbox for Node.js and npm using bubblewrap to protect your system from malicious packages while maintaining full development capabilities.**
 
 ## 🎯 What This Does
 
@@ -16,23 +21,25 @@ This project creates an isolated sandbox environment for Node.js and npm that:
 
 When you run `npm install` or execute Node.js scripts, malicious packages can:
 
-- Steal your SSH private keys (`~/.ssh/id_rsa`)
-- Access browser saved passwords and cookies
-- Read your personal documents and files
-- Modify system configuration files
-- Install backdoors or malware
-- Exfiltrate sensitive data to remote servers
+- 🗝️ Steal your SSH private keys (`~/.ssh/id_rsa`)
+- 🌐 Access browser saved passwords and cookies
+- 📄 Read your personal documents and files
+- ⚙️ Modify system configuration files
+- 🦠 Install backdoors or malware
+- 📡 Exfiltrate sensitive data to remote servers
 
 **This sandbox prevents ALL of these attacks while keeping your development workflow intact.**
 
 ## ✅ Tested Environment
 
-- **Operating System**: Ubuntu 24.04 LTS
-- **Node.js**: All versions (tested with v18+)
-- **Architecture**: x86_64 (amd64)
-- **Shell**: Bash, Zsh compatible
+| Component | Version | Status |
+|-----------|---------|--------|
+| **Operating System** | Ubuntu 24.04 LTS | ✅ Tested |
+| **Node.js** | v18+ | ✅ Compatible |
+| **Architecture** | x86_64 (amd64) | ✅ Supported |
+| **Shell** | Bash, Zsh | ✅ Compatible |
 
-*Should work on other Linux distributions with bubblewrap support.*
+> *Should work on other Linux distributions with bubblewrap support.*
 
 ## 🔧 Prerequisites
 
@@ -47,13 +54,13 @@ node --version
 npm --version
 ```
 
-## 🚀 Installation
+## 🚀 Quick Start
 
 ### Option 1: Automated Installation (Recommended)
 
 ```bash
 # Download and run the installer
-wget https://raw.githubusercontent.com/your-repo/node-security-sandbox/main/node_isolation.sh
+wget https://raw.githubusercontent.com/codewizdevs/node-security-sandbox/main/node_isolation.sh
 chmod +x node_isolation.sh
 ./node_isolation.sh
 ```
@@ -62,7 +69,7 @@ chmod +x node_isolation.sh
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-repo/node-security-sandbox.git
+git clone https://github.com/codewizdevs/node-security-sandbox.git
 cd node-security-sandbox
 
 # Run the installer
@@ -92,11 +99,11 @@ The sandbox uses **bubblewrap** (the same technology used by Flatpak) to create 
 
 | **Protected** | **Accessible** |
 |---------------|----------------|
-| SSH keys (`~/.ssh/`) | Current project directory |
-| Browser data (`~/.config/`) | Sandbox home (`~/.sandbox/node/`) |
-| Personal documents | System binaries (read-only) |
-| System files (`/etc/`, `/var/`) | Network (for npm installs) |
-| Other user accounts | Temporary files |
+| 🗝️ SSH keys (`~/.ssh/`) | 📁 Current project directory |
+| 🌐 Browser data (`~/.config/`) | 🏠 Sandbox home (`~/.sandbox/node/`) |
+| 📄 Personal documents | ⚙️ System binaries (read-only) |
+| 🔧 System files (`/etc/`, `/var/`) | 🌐 Network (for npm installs) |
+| 👥 Other user accounts | 📝 Temporary files |
 
 ### 🏗️ Architecture
 
@@ -112,11 +119,13 @@ Real System                 Sandbox Environment
 
 ### 🔄 Process Flow
 
-1. You run `node script.js` or `npm install package`
-2. Wrapper script intercepts the command
-3. Bubblewrap creates isolated namespaces
-4. Node.js/npm runs with restricted filesystem access
-5. Malicious code cannot escape the sandbox
+```mermaid
+graph TD
+    A[You run node/npm command] --> B[Wrapper script intercepts]
+    B --> C[Bubblewrap creates isolated namespaces]
+    C --> D[Node.js/npm runs with restricted access]
+    D --> E[Malicious code cannot escape sandbox]
+```
 
 ## 🧪 Testing Security
 
@@ -270,55 +279,61 @@ rm -rf ~/.sandbox/node
 ## 🔬 What Gets Protected
 
 ### ✅ Complete Protection
-- SSH private keys and certificates
-- Browser passwords and cookies
-- Git credentials and configuration  
-- AWS/Cloud provider credentials
-- Personal documents and files
-- System configuration files
-- Other user accounts and processes
+- 🗝️ SSH private keys and certificates
+- 🌐 Browser passwords and cookies
+- 🔑 Git credentials and configuration  
+- ☁️ AWS/Cloud provider credentials
+- 📄 Personal documents and files
+- ⚙️ System configuration files
+- 👥 Other user accounts and processes
 
 ### ⚠️ Limited Access
-- Current working directory (necessary for development)
-- Project-specific files and dependencies
-- Sandbox home directory
+- 📁 Current working directory (necessary for development)
+- 📦 Project-specific files and dependencies
+- 🏠 Sandbox home directory
 
 ### 🌐 Network Access
-- Full internet connectivity maintained
-- npm registry access for package installs
-- API calls and external services work normally
+- 🌍 Full internet connectivity maintained
+- 📦 npm registry access for package installs
+- 🔌 API calls and external services work normally
 
 ## 📊 Security Metrics
 
 A properly configured sandbox should achieve:
 
-- **Sensitive File Protection**: 100%
-- **System File Isolation**: 95%+  
-- **Process Isolation**: 90%+
-- **Network Functionality**: 100%
-- **Development Workflow**: 100%
+| Security Aspect | Protection Level |
+|-----------------|------------------|
+| **Sensitive File Protection** | 100% |
+| **System File Isolation** | 95%+ |
+| **Process Isolation** | 90%+ |
+| **Network Functionality** | 100% |
+| **Development Workflow** | 100% |
 
 Run `test-node-sandbox-full` to get detailed security metrics.
 
 ## 🤝 Contributing
 
-1. Fork the repository
-2. Create a feature branch
-3. Test on Ubuntu 24.04
-4. Submit a pull request
+We welcome contributions! Here's how you can help:
+
+1. 🍴 Fork the repository
+2. 🌿 Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. 🧪 Test on Ubuntu 24.04
+4. 💾 Commit your changes (`git commit -m 'Add amazing feature'`)
+5. 📤 Push to the branch (`git push origin feature/amazing-feature`)
+6. 🔄 Open a Pull Request
 
 ## 📜 License
 
-MIT License - see LICENSE file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## ⚠️ Disclaimer
 
 This sandbox provides strong isolation for most attack vectors but is not foolproof. Always:
 
-- Review code before running it
-- Keep your system updated
-- Use additional security measures for high-value targets
-- Report security issues responsibly
+- 👀 Review code before running it
+- 🔄 Keep your system updated
+- 🛡️ Use additional security measures for high-value targets
+- 📧 Report security issues responsibly
 
 ## 🔗 Related Projects
 
@@ -328,11 +343,19 @@ This sandbox provides strong isolation for most attack vectors but is not foolpr
 
 ## 📞 Support
 
-- 🐛 **Issues**: Report bugs and problems
-- 💡 **Feature Requests**: Suggest improvements  
+- 🐛 **Issues**: [Report bugs and problems](https://github.com/codewizdevs/node-security-sandbox/issues)
+- 💡 **Feature Requests**: [Suggest improvements](https://github.com/codewizdevs/node-security-sandbox/issues)
 - 📖 **Documentation**: Help improve this README
 - 🧪 **Testing**: Test on different distributions
 
 ---
 
-**🛡️ Secure your Node.js development today!** This sandbox provides enterprise-grade security while maintaining the flexibility and speed you need for productive development.
+<div align="center">
+
+**🛡️ Secure your Node.js development today!**
+
+This sandbox provides enterprise-grade security while maintaining the flexibility and speed you need for productive development.
+
+[⭐ Star this repo](https://github.com/codewizdevs/node-security-sandbox) | [🐛 Report Issues](https://github.com/codewizdevs/node-security-sandbox/issues) | [💡 Request Features](https://github.com/codewizdevs/node-security-sandbox/issues)
+
+</div>
