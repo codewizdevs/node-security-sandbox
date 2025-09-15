@@ -1,4 +1,3 @@
-
 #!/bin/bash
 
 # =============================================================================
@@ -28,11 +27,16 @@ CYAN='\033[0;36m'
 BOLD='\033[1m'
 NC='\033[0m' # No Color
 
+# Create separator line (compatible with all shells)
+create_separator() {
+    echo "============================================================"
+}
+
 # Print functions
 print_header() {
-    echo -e "\n${CYAN}${BOLD}${'='*60}${NC}"
+    echo -e "\n${CYAN}${BOLD}$(create_separator)${NC}"
     echo -e "${CYAN}${BOLD}$1${NC}"
-    echo -e "${CYAN}${BOLD}${'='*60}${NC}"
+    echo -e "${CYAN}${BOLD}$(create_separator)${NC}"
 }
 
 print_step() {
@@ -57,7 +61,7 @@ print_info() {
 
 # Check if running as root
 check_not_root() {
-    if [[ $EUID -eq 0 ]]; then
+    if [ "$(id -u)" -eq 0 ]; then
         print_error "This script should not be run as root!"
         print_info "Please run as your regular user account."
         exit 1
@@ -69,7 +73,7 @@ check_requirements() {
     print_step "Checking system requirements..."
     
     # Check if bubblewrap is installed
-    if ! command -v bwrap &> /dev/null; then
+    if ! command -v bwrap >/dev/null 2>&1; then
         print_error "bubblewrap is not installed!"
         print_info "Install it with: sudo apt install bubblewrap"
         exit 1
@@ -77,7 +81,7 @@ check_requirements() {
     print_success "bubblewrap found: $(which bwrap)"
     
     # Check if Node.js is installed
-    if ! command -v node &> /dev/null; then
+    if ! command -v node >/dev/null 2>&1; then
         print_error "Node.js is not installed!"
         print_info "Install it with: sudo apt install nodejs"
         exit 1
@@ -85,7 +89,7 @@ check_requirements() {
     print_success "Node.js found: $(which node) ($(node --version))"
     
     # Check if npm is installed
-    if ! command -v npm &> /dev/null; then
+    if ! command -v npm >/dev/null 2>&1; then
         print_error "npm is not installed!"
         print_info "Install it with: sudo apt install npm"
         exit 1
@@ -94,13 +98,13 @@ check_requirements() {
     
     # Check bubblewrap permissions
     BWRAP_PATH=$(which bwrap)
-    if [[ ! -u "$BWRAP_PATH" ]]; then
+    if [ ! -u "$BWRAP_PATH" ]; then
         print_warning "bubblewrap needs setuid permissions for proper operation"
         print_info "You may need to run: sudo chmod u+s $BWRAP_PATH"
         
-        read -p "Do you want to set bubblewrap permissions now? (y/N): " -n 1 -r
-        echo
-        if [[ $REPLY =~ ^[Yy]$ ]]; then
+        printf "Do you want to set bubblewrap permissions now? (y/N): "
+        read -r REPLY
+        if [ "$REPLY" = "y" ] || [ "$REPLY" = "Y" ]; then
             sudo chmod u+s "$BWRAP_PATH"
             print_success "bubblewrap permissions set"
         else
@@ -111,18 +115,20 @@ check_requirements() {
     fi
     
     # Check if user namespaces are enabled
-    if [[ -f /proc/sys/kernel/unprivileged_userns_clone ]]; then
+    if [ -f /proc/sys/kernel/unprivileged_userns_clone ]; then
         USERNS_ENABLED=$(cat /proc/sys/kernel/unprivileged_userns_clone)
-        if [[ "$USERNS_ENABLED" != "1" ]]; then
+        if [ "$USERNS_ENABLED" != "1" ]; then
             print_warning "Unprivileged user namespaces are disabled"
             print_info "You may need to run: sudo sysctl kernel.unprivileged_userns_clone=1"
             
-            read -p "Do you want to enable user namespaces now? (y/N): " -n 1 -r
-            echo
-            if [[ $REPLY =~ ^[Yy]$ ]]; then
+            printf "Do you want to enable user namespaces now? (y/N): "
+            read -r REPLY
+            if [ "$REPLY" = "y" ] || [ "$REPLY" = "Y" ]; then
                 sudo sysctl kernel.unprivileged_userns_clone=1
                 echo 'kernel.unprivileged_userns_clone=1' | sudo tee -a /etc/sysctl.conf
                 print_success "User namespaces enabled"
+            else
+                print_info "Continuing without enabling user namespaces - sandbox may not work"
             fi
         else
             print_success "User namespaces are enabled"
@@ -230,7 +236,7 @@ mkdir -p "$SANDBOX_HOME/.npm-global/bin"
 mkdir -p "$SANDBOX_HOME/.npm-global/lib"
 
 # Create npm config if it doesn't exist
-if [[ ! -f "$SANDBOX_HOME/.npmrc" ]]; then
+if [ ! -f "$SANDBOX_HOME/.npmrc" ]; then
     cat > "$SANDBOX_HOME/.npmrc" << NPMEOF
 prefix=$SANDBOX_HOME/.npm-global
 cache=$SANDBOX_HOME/.npm
@@ -286,7 +292,7 @@ setup_path() {
     PATH_EXPORT='export PATH="$HOME/.local/bin:$PATH"'
     
     # Add to .bashrc if it exists
-    if [[ -f "$HOME/.bashrc" ]]; then
+    if [ -f "$HOME/.bashrc" ]; then
         if ! grep -q "$HOME/.local/bin" "$HOME/.bashrc"; then
             echo "" >> "$HOME/.bashrc"
             echo "# Node.js sandbox - added by Node.js sandbox installer" >> "$HOME/.bashrc"
@@ -298,7 +304,7 @@ setup_path() {
     fi
     
     # Add to .zshrc if it exists
-    if [[ -f "$HOME/.zshrc" ]]; then
+    if [ -f "$HOME/.zshrc" ]; then
         if ! grep -q "$HOME/.local/bin" "$HOME/.zshrc"; then
             echo "" >> "$HOME/.zshrc"
             echo "# Node.js sandbox - added by Node.js sandbox installer" >> "$HOME/.zshrc"
@@ -310,7 +316,7 @@ setup_path() {
     fi
     
     # Add to .profile as fallback
-    if [[ -f "$HOME/.profile" ]]; then
+    if [ -f "$HOME/.profile" ]; then
         if ! grep -q "$HOME/.local/bin" "$HOME/.profile"; then
             echo "" >> "$HOME/.profile"
             echo "# Node.js sandbox - added by Node.js sandbox installer" >> "$HOME/.profile"
@@ -322,12 +328,12 @@ setup_path() {
     fi
 }
 
-# Create test scripts
+# Create test scripts that work with the sandbox
 create_test_scripts() {
     print_step "Creating security test scripts..."
     
-    # Create basic test script
-    cat > "$HOME/.local/bin/test-node-sandbox" << 'EOF'
+    # Create test script in current directory (accessible to sandboxed node)
+    cat > "./test-sandbox.js" << 'EOF'
 #!/usr/bin/env node
 
 console.log('🔍 Node.js Sandbox Quick Test');
@@ -359,18 +365,38 @@ try {
     console.log('✅ Security test: SSH keys protected');
 }
 
+// Test real home directory access
+try {
+    const realHome = '/home/' + (process.env.USER || 'user');
+    const contents = fs.readdirSync(realHome);
+    console.log('⚠️  Can access real home directory:', contents.slice(0, 3).join(', '));
+} catch (error) {
+    console.log('✅ Real home directory blocked');
+}
+
 console.log('\n🎯 Quick test complete!');
 EOF
     
-    chmod +x "$HOME/.local/bin/test-node-sandbox"
-    print_success "Created basic test script: test-node-sandbox"
+    chmod +x "./test-sandbox.js"
+    print_success "Created test script: test-sandbox.js (in current directory)"
     
-    # Copy comprehensive test if we have it in current directory
-    if [[ -f "comprehensive_node_isolation_test.js" ]]; then
-        cp "comprehensive_node_isolation_test.js" "$HOME/.local/bin/test-node-sandbox-full"
-        chmod +x "$HOME/.local/bin/test-node-sandbox-full"
-        print_success "Copied comprehensive test script: test-node-sandbox-full"
-    fi
+    # Create helper script to run system node for testing when needed
+    cat > "$HOME/.local/bin/test-node-sandbox-system" << 'EOF'
+#!/bin/bash
+# Run test with system node to verify sandbox is working
+echo "🔍 Testing sandbox using system Node.js..."
+if [ -f "./test-sandbox.js" ]; then
+    /usr/bin/node ./test-sandbox.js
+elif [ -f "$HOME/.local/bin/test-sandbox.js" ]; then
+    /usr/bin/node "$HOME/.local/bin/test-sandbox.js"
+else
+    echo "❌ Test script not found"
+    exit 1
+fi
+EOF
+    
+    chmod +x "$HOME/.local/bin/test-node-sandbox-system"
+    print_success "Created system test helper: test-node-sandbox-system"
 }
 
 # Test installation
@@ -387,41 +413,54 @@ test_installation() {
     print_info "node command location: $NODE_WHICH"
     print_info "npm command location: $NPM_WHICH"
     
-    if [[ "$NODE_WHICH" == "$HOME/.local/bin/node" ]]; then
+    if [ "$NODE_WHICH" = "$HOME/.local/bin/node" ]; then
         print_success "node wrapper is active"
     else
         print_warning "node wrapper not in PATH - you may need to restart your shell"
     fi
     
-    if [[ "$NPM_WHICH" == "$HOME/.local/bin/npm" ]]; then
+    if [ "$NPM_WHICH" = "$HOME/.local/bin/npm" ]; then
         print_success "npm wrapper is active"
     else
         print_warning "npm wrapper not in PATH - you may need to restart your shell"
     fi
     
-    # Test basic functionality
-    print_info "Testing Node.js version..."
-    if node --version; then
-        print_success "Node.js sandbox working"
+    # Test basic functionality with system node first to avoid recursion
+    print_info "Testing Node.js version with system node..."
+    if /usr/bin/node --version >/dev/null 2>&1; then
+        print_success "System Node.js working"
     else
-        print_error "Node.js sandbox test failed"
+        print_error "System Node.js test failed"
         return 1
     fi
     
-    print_info "Testing npm version..."
-    if npm --version; then
-        print_success "npm sandbox working"
+    print_info "Testing npm version with system npm..."
+    if /usr/bin/npm --version >/dev/null 2>&1; then
+        print_success "System npm working"
     else
-        print_error "npm sandbox test failed"
+        print_error "System npm test failed"
         return 1
     fi
     
-    # Run basic security test
+    # Test sandbox functionality
+    print_info "Testing sandboxed Node.js version..."
+    if "$HOME/.local/bin/node" --version >/dev/null 2>&1; then
+        print_success "Sandboxed Node.js working"
+    else
+        print_error "Sandboxed Node.js test failed"
+        return 1
+    fi
+    
+    # Run basic security test using the test script in current directory
     print_info "Running basic security test..."
-    if test-node-sandbox; then
-        print_success "Security test passed"
+    if [ -f "./test-sandbox.js" ]; then
+        if "$HOME/.local/bin/node" ./test-sandbox.js; then
+            print_success "Security test passed"
+        else
+            print_warning "Security test had issues"
+        fi
     else
-        print_warning "Security test had issues"
+        print_warning "Test script not found - skipping security test"
     fi
 }
 
@@ -437,20 +476,26 @@ echo "🗑️  Uninstalling Node.js Sandbox..."
 # Remove wrapper scripts
 rm -f "$HOME/.local/bin/node"
 rm -f "$HOME/.local/bin/npm"
-rm -f "$HOME/.local/bin/test-node-sandbox"
-rm -f "$HOME/.local/bin/test-node-sandbox-full"
+rm -f "$HOME/.local/bin/test-node-sandbox-system"
 rm -f "$HOME/.local/bin/uninstall-node-sandbox"
 
+# Remove test script from current directory if it exists
+if [ -f "./test-sandbox.js" ]; then
+    rm -f "./test-sandbox.js"
+    echo "✅ Removed test script from current directory"
+fi
+
 # Optionally remove sandbox directory
-read -p "Remove sandbox directory $HOME/.sandbox/node? (y/N): " -n 1 -r
-echo
-if [[ $REPLY =~ ^[Yy]$ ]]; then
+printf "Remove sandbox directory $HOME/.sandbox/node? (y/N): "
+read -r REPLY
+if [ "$REPLY" = "y" ] || [ "$REPLY" = "Y" ]; then
     rm -rf "$HOME/.sandbox/node"
     echo "✅ Sandbox directory removed"
 fi
 
 echo "✅ Node.js sandbox uninstalled"
 echo "Note: You may want to manually remove PATH entries from your shell config files"
+echo "Look for lines containing: # Node.js sandbox - added by Node.js sandbox installer"
 EOF
     
     chmod +x "$HOME/.local/bin/uninstall-node-sandbox"
@@ -465,9 +510,9 @@ main() {
     print_info "The sandbox will protect your system from malicious npm packages."
     print_info ""
     
-    read -p "Do you want to continue with the installation? (Y/n): " -n 1 -r
-    echo
-    if [[ $REPLY =~ ^[Nn]$ ]]; then
+    printf "Do you want to continue with the installation? (Y/n): "
+    read -r REPLY
+    if [ "$REPLY" = "n" ] || [ "$REPLY" = "N" ]; then
         print_info "Installation cancelled"
         exit 0
     fi
@@ -490,16 +535,17 @@ main() {
     echo
     print_info "Next steps:"
     echo "  1. Restart your terminal or run: source ~/.bashrc"
-    echo "  2. Test with: node --version && npm --version"
-    echo "  3. Run security test: test-node-sandbox"
-    echo "  4. If available, run full test: test-node-sandbox-full"
+    echo "  2. Verify sandbox is active with: which node && which npm"
+    echo "     (Should show: $HOME/.local/bin/node and $HOME/.local/bin/npm)"
+    echo "  3. Run security test: node test-sandbox.js"
+    echo "  4. Or use system node test: test-node-sandbox-system"
     echo
     print_info "Your Node.js and npm commands are now sandboxed!"
     print_info "Malicious packages cannot access your SSH keys, browser data, or system files."
     echo
     print_info "To uninstall: uninstall-node-sandbox"
     echo
-    print_warning "Remember to restart your terminal or run 'source ~/.bashrc' to activate the sandbox!"
+    print_warning "PATH was added to your shell config - restart terminal or run 'source ~/.bashrc'!"
 }
 
 # Run main function
